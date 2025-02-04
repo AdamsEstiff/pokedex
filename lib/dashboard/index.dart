@@ -10,21 +10,21 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  Pokemon? pokemon;
+  List<Pokemon> pokemons = [];
   bool isError = false;
 
   @override
   void initState() {
-    getPokemon();
+    // getPokemon();
     super.initState();
   }
 
   Future<void> getPokemon() async {
     try {
-      pokemon = await Pokemon().getPokemon("pikachu");
-      setState(() {
-        pokemon;
-      });
+      // pokemons = await Pokemon().getPokemon("pikachu");
+      // setState(() {
+      //   pokemon;
+      // });
     } catch (e) {
       setState(() {
         isError = true;
@@ -50,12 +50,12 @@ class _DashboardState extends State<Dashboard> {
                 Center(
                   child: Text("Ocurrio un error inesperado"),
                 ),
-              if (pokemon == null && !isError)
+              if (pokemons.isNotEmpty && !isError)
                 Center(
                   child: Column(
                     children: [
                       Text(
-                        "No se a cargado el Pokemón",
+                        "No se han ingresado pokemons",
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.black),
                       ),
@@ -69,13 +69,13 @@ class _DashboardState extends State<Dashboard> {
                     ],
                   ),
                 ),
-              if (pokemon != null && !isError)
-                Center(
-                  child: Text(
-                    "${pokemon?.name}",
-                    style: TextStyle(color: Colors.black),
-                  ),
-                )
+              // if (pokemon != null && !isError)
+              //   Center(
+              //     child: Text(
+              //       "${pokemon?.name}",
+              //       style: TextStyle(color: Colors.black),
+              //     ),
+              //   )
             ],
           )),
     );
