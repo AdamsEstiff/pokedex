@@ -17,20 +17,24 @@ class _DashboardState extends State<Dashboard> {
 
   Future<void> getPokemon() async {
     final response = await Dio().get('https://pokeapi.co/api/v2/pokemon/ditto');
-    print(response.data);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          "Lista de Pokemons",
-          style: TextStyle(color: Colors.white),
-        ),
+        title: Text('Pokédex'),
+        backgroundColor: Color(0xFFFFCC00),
+        foregroundColor: Color(0xFF3D7DCA),
       ),
       body: Container(
-        child: Text("body"),
+        color: Color(0xFFF2F2F2),
+        child: Center(
+          child: Text(
+            '¡Bienvenido al mundo Pokémon!',
+            style: TextStyle(color: Color(0xFF333333)),
+          ),
+        ),
       ),
     );
   }
