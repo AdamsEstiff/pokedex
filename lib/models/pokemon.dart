@@ -27,9 +27,10 @@ class Pokemon {
       List<Ability>? abilityList = [];
 
       for (var ability in body["abilities"]) {
+        print(ability);
         abilityList.add(Ability(
-            name: ability["name"],
-            url: ability["url"],
+            name: ability["ability"]["name"],
+            url: ability["ability"]["url"],
             is_hidden: ability["is_hidden"]));
       }
 
