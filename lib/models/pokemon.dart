@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:pokedex/models/ability.dart';
 
 class Pokemon {
@@ -18,18 +20,30 @@ class Pokemon {
       this.location_area_encounters,
       this.abilities});
 
-  Future<Pokemon> getPokemon(String name) async {
-    final response = await Dio().get('https://pokeapi.co/api/v2/pokemon/$name');
-    Map body = response.data;
+  Future<Pokemon?> getPokemon(String name) async {
+    try{
+      final response = await Dio().get('https://pokeapi.co/api/v2/pokemon/$name');
+      Map body = response.data;
+      List<Ability>? abilityList = [];
 
-    return Pokemon(
+      for (var ability in body["abilities"]) {
+        abilityList.add(Ability(
+            name: ability["name"],
+            url: ability["url"],
+            is_hidden: ability["is_hidden"]));
+      }
+
+      return Pokemon(
         id: body["id"],
         name: body["name"],
         order: body["order"],
         is_default: body["is_default"],
         location_area_encounters: body["location_area_encounters"],
-        //abilidades faltan
-    );
+        abilities: abilityList
+      );
+    }catch(e){
+      return null;
+    }
   }
 
   Map<String, dynamic> toMap() {

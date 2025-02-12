@@ -10,8 +10,12 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+  TextEditingController controller = TextEditingController();
   List<Pokemon> pokemons = [];
+  String validateMessage = "";
+  bool loading = false;
   bool isError = false;
+  bool _validate = false;
 
   @override
   void initState() {
@@ -19,17 +23,122 @@ class _DashboardState extends State<Dashboard> {
     super.initState();
   }
 
-  Future<void> getPokemon() async {
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> getPokemon(String name, StateSetter setState) async {
     try {
-      // pokemons = await Pokemon().getPokemon("pikachu");
-      // setState(() {
-      //   pokemon;
-      // });
+      if (controller.text.isEmpty) {
+        setState(() {
+          validateMessage = "El nombre del Pokemon no puede ser vacío";
+          _validate = true;
+        });
+      } else {
+        setState(() {
+          loading = true;
+        });
+        Pokemon? pokemon = await Pokemon().getPokemon(name);
+        if (pokemon != null) {
+          setState(() {
+            pokemons.add(pokemon);
+            validateMessage = "";
+            _validate = false;
+          });
+          controller.clear();
+          Navigator.pop(context);
+        } else {
+          setState(() {
+            validateMessage = "No se encuentra el nombre del Pokemón escrito";
+            _validate = true;
+          });
+        }
+      }
     } catch (e) {
       setState(() {
         isError = true;
       });
+    } finally {
+      setState(() {
+        loading = false;
+      });
     }
+  }
+
+  Future showAddPokemon(BuildContext context) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              title: Text("Añadir Pokemons"),
+              content: Wrap(
+                children: [
+                  TextField(
+                    controller: controller,
+                    onChanged: (data) {
+                      setState(() {
+                        _validate = data.isEmpty;
+                      });
+                    },
+                    decoration: InputDecoration(
+                        labelText: 'Pokemon',
+                        errorText: _validate ? validateMessage : null,
+                        errorStyle: TextStyle(color: Colors.red)),
+                  )
+                ],
+              ),
+              actions: [
+                TextButton(
+                  child: Text(
+                    "Cerrar",
+                    style: TextStyle(color: Colors.red),
+                  ),
+                  onPressed: () {
+                    validateMessage = "";
+                    _validate = false;
+                    controller.clear();
+                    Navigator.pop(context);
+                  },
+                ),
+                TextButton(
+                  child: Text(
+                    "Aceptar",
+                    style: TextStyle(color: Colors.green),
+                  ),
+                  onPressed: () async {
+                    await getPokemon(controller.text, setState);
+                  },
+                )
+              ],
+            );
+          });
+        });
+  }
+
+  Future<void> showModal(Pokemon pokemon) {
+    return showModalBottomSheet<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return SizedBox(
+          height: 200,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(pokemon.name!),
+                Text(pokemon.order!.toString()),
+                for (var ability in pokemon.abilities!) Text("${ability.name}")
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -50,34 +159,53 @@ class _DashboardState extends State<Dashboard> {
                 Center(
                   child: Text("Ocurrio un error inesperado"),
                 ),
-              if (pokemons.isNotEmpty && !isError)
-                Center(
-                  child: Column(
-                    children: [
-                      Text(
-                        "No se han ingresado pokemons",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.black),
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      CircularProgressIndicator(
-                        color: Color(0xFFFFCC00),
-                        // backgroundColor: Color(0xFFFFCC00),
-                      ),
-                    ],
+              AnimatedCrossFade(
+                crossFadeState: pokemons.isNotEmpty
+                    ? CrossFadeState.showFirst
+                    : CrossFadeState.showSecond,
+                duration: const Duration(seconds: 1),
+                firstChild: Container(
+                  constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.width * 0.8,
+                      maxWidth: MediaQuery.of(context).size.width),
+                  child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: pokemons.length,
+                      itemBuilder: (context, idx) {
+                        return ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: Color(0xFF3D7DCA),
+                            child: Text(
+                              pokemons[idx].name![0].toUpperCase(),
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                          title: Text(
+                            "${pokemons[idx]?.name}",
+                          ),
+                          onTap: () {
+                            showModal(pokemons[idx]);
+                          },
+                        );
+                      }),
+                ),
+                secondChild: Center(
+                  child: Text(
+                    "No se han ingresado pokemons",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.black),
                   ),
                 ),
-              // if (pokemon != null && !isError)
-              //   Center(
-              //     child: Text(
-              //       "${pokemon?.name}",
-              //       style: TextStyle(color: Colors.black),
-              //     ),
-              //   )
+              )
             ],
           )),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showAddPokemon(context);
+        },
+        backgroundColor: Colors.yellow, // Fondo amarillo
+        child: const Icon(Icons.add, color: Colors.black), // Icono negro
+      ),
     );
   }
 }
