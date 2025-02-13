@@ -124,15 +124,31 @@ class _DashboardState extends State<Dashboard> {
       context: context,
       builder: (BuildContext context) {
         return SizedBox(
-          height: 200,
-          child: Center(
+          height: MediaQuery.of(context).size.height / 3,
+          width: MediaQuery.of(context).size.width * 0.8,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(pokemon.name!),
-                Text(pokemon.order!.toString()),
-                for (var ability in pokemon.abilities!) Text("${ability.name}")
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  pokemon.name!,
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Orden: ${pokemon.order}',
+                  style: TextStyle(fontSize: 18),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Habilidades:',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 8),
+                ...pokemon.abilities!
+                    .map((ability) => Text('• ${ability.name}'))
+                    .toList(),
               ],
             ),
           ),
@@ -149,56 +165,58 @@ class _DashboardState extends State<Dashboard> {
         backgroundColor: Color(0xFFFFCC00),
         foregroundColor: Color(0xFF3D7DCA),
       ),
-      body: Container(
-          color: Color(0xFFF2F2F2),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              if (isError)
-                Center(
-                  child: Text("Ocurrio un error inesperado"),
-                ),
-              AnimatedCrossFade(
-                crossFadeState: pokemons.isNotEmpty
-                    ? CrossFadeState.showFirst
-                    : CrossFadeState.showSecond,
-                duration: const Duration(seconds: 1),
-                firstChild: Container(
-                  constraints: BoxConstraints(
-                      maxHeight: MediaQuery.of(context).size.width * 0.8,
-                      maxWidth: MediaQuery.of(context).size.width),
-                  child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: pokemons.length,
-                      itemBuilder: (context, idx) {
-                        return ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: Color(0xFF3D7DCA),
-                            child: Text(
-                              pokemons[idx].name![0].toUpperCase(),
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
-                          title: Text(
-                            "${pokemons[idx]?.name}",
-                          ),
-                          onTap: () {
-                            showModal(pokemons[idx]);
-                          },
-                        );
-                      }),
-                ),
-                secondChild: Center(
-                  child: Text(
-                    "No se han ingresado pokemons",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.black),
+      body: AnimatedCrossFade(
+        crossFadeState: pokemons.isNotEmpty
+            ? CrossFadeState.showFirst
+            : CrossFadeState.showSecond,
+        duration: const Duration(seconds: 1),
+        firstChild: Container(
+          constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height,
+              maxWidth: MediaQuery.of(context).size.width),
+          child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: pokemons.length,
+              itemBuilder: (context, idx) {
+                return Container(
+                  margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
+                  padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
+                  decoration: BoxDecoration(
+                    color: Color(0xFFADD8E6),
+                    border: Border.all(
+                      color: Color(0xFFADD8E6),
+                    ),
+                    borderRadius: BorderRadius.circular(100),
                   ),
-                ),
-              )
-            ],
-          )),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Color(0xFF3D7DCA),
+                      child: Text(
+                        pokemons[idx].name![0].toUpperCase(),
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    title: Text(
+                      "${pokemons[idx]?.name}",
+                    ),
+                    onTap: () {
+                      showModal(pokemons[idx]);
+                    },
+                  ),
+                );
+              }),
+        ),
+        secondChild: Container(
+          height: MediaQuery.of(context).size.height,
+          child: Center(
+            child: Text(
+              "No se han ingresado pokemons",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.black),
+            ),
+          ),
+        ),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           showAddPokemon(context);
