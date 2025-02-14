@@ -19,7 +19,6 @@ class _DashboardState extends State<Dashboard> {
 
   @override
   void initState() {
-    // getPokemon();
     super.initState();
   }
 
@@ -31,6 +30,9 @@ class _DashboardState extends State<Dashboard> {
 
   Future<void> getPokemon(String name, StateSetter setState) async {
     try {
+      if (pokemons.any((pokemon) => pokemon.name == controller.text)) {
+        throw Exception("Este pokemon ya existe");
+      }
       if (controller.text.isEmpty) {
         setState(() {
           validateMessage = "El nombre del Pokemon no puede ser vacío";
@@ -58,7 +60,8 @@ class _DashboardState extends State<Dashboard> {
       }
     } catch (e) {
       setState(() {
-        isError = true;
+        validateMessage = "$e";
+        _validate = true;
       });
     } finally {
       setState(() {
@@ -82,6 +85,7 @@ class _DashboardState extends State<Dashboard> {
                     onChanged: (data) {
                       setState(() {
                         _validate = data.isEmpty;
+                        validateMessage = "No puedes dejar el nombre vacío";
                       });
                     },
                     decoration: InputDecoration(
@@ -128,12 +132,39 @@ class _DashboardState extends State<Dashboard> {
           width: MediaQuery.of(context).size.width * 0.8,
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: ListView(
               children: [
-                Text(
-                  pokemon.name!,
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    CircleAvatar(
+                        child: Image.network(
+                      "${pokemon.sprite?.frontDefault}",
+                      loadingBuilder: (BuildContext context, Widget child,
+                          ImageChunkEvent? loadingProgress) {
+                        if (loadingProgress == null) {
+                          return child;
+                        } else {
+                          return Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                      (loadingProgress.expectedTotalBytes ?? 1)
+                                  : null,
+                            ),
+                          );
+                        }
+                      },
+                    )),
+                    Text(
+                      pokemon.name!,
+                      style:
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(
+                      width: 10,
+                    )
+                  ],
                 ),
                 SizedBox(height: 16),
                 Text(
