@@ -190,9 +190,27 @@ class _DashboardState extends State<Dashboard> {
                   ),
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: Color(0xFF3D7DCA),
-                      child: Image.network("${pokemons[idx].sprite?.frontDefault}")
-                    ),
+                        backgroundColor: Color(0xFF3D7DCA),
+                        child: Image.network(
+                          "${pokemons[idx].sprite?.frontDefault}",
+                          loadingBuilder: (BuildContext context, Widget child,
+                              ImageChunkEvent? loadingProgress) {
+                            if (loadingProgress == null) {
+                              return child;
+                            } else {
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes !=
+                                          null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          (loadingProgress.expectedTotalBytes ??
+                                              1)
+                                      : null,
+                                ),
+                              );
+                            }
+                          },
+                        )),
                     title: Text(
                       "${pokemons[idx]?.name}",
                     ),
