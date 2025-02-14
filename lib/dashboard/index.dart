@@ -191,10 +191,7 @@ class _DashboardState extends State<Dashboard> {
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundColor: Color(0xFF3D7DCA),
-                      child: Text(
-                        pokemons[idx].name![0].toUpperCase(),
-                        style: TextStyle(color: Colors.white),
-                      ),
+                      child: Image.network("${pokemons[idx].sprite?.frontDefault}")
                     ),
                     title: Text(
                       "${pokemons[idx]?.name}",
