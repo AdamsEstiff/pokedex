@@ -5,8 +5,6 @@ class Ability {
 
   Ability({this.name, this.url, this.is_hidden});
 
-
-
   Map<String, dynamic> toMap() {
     return {"name": name, "url": url, "is_hidden": is_hidden};
   }

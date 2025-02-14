@@ -29,14 +29,12 @@ class Pokemon {
           await Dio().get('https://pokeapi.co/api/v2/pokemon/$name');
       Map body = response.data;
       List<Ability>? abilityList = [];
-
-      for (var ability in body["abilities"]) {
+      for (var object in body["abilities"]) {
         abilityList.add(Ability(
-            name: ability["ability"]["name"],
-            url: ability["ability"]["url"],
-            is_hidden: ability["is_hidden"]));
+            name: object["ability"]["name"],
+            url: object["ability"]["url"],
+            is_hidden: object["is_hidden"]));
       }
-
 
       return Pokemon(
           id: body["id"],
@@ -54,8 +52,7 @@ class Pokemon {
             frontFemale: body["sprites"]["front_female"],
             frontShiny: body["sprites"]["front_shiny"],
             frontShinyFemale: body["sprites"]["front_shiny_female"],
-          )
-      );
+          ));
     } catch (e) {
       return null;
     }

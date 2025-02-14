@@ -200,7 +200,7 @@ class _DashboardState extends State<Dashboard> {
         crossFadeState: pokemons.isNotEmpty
             ? CrossFadeState.showFirst
             : CrossFadeState.showSecond,
-        duration: const Duration(seconds: 1),
+        duration: const Duration(milliseconds: 500),
         firstChild: Container(
           constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height,
@@ -222,26 +222,32 @@ class _DashboardState extends State<Dashboard> {
                   child: ListTile(
                     leading: CircleAvatar(
                         backgroundColor: Color(0xFF3D7DCA),
-                        child: Image.network(
-                          "${pokemons[idx].sprite?.frontDefault}",
-                          loadingBuilder: (BuildContext context, Widget child,
-                              ImageChunkEvent? loadingProgress) {
-                            if (loadingProgress == null) {
-                              return child;
-                            } else {
-                              return Center(
-                                child: CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes !=
-                                          null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          (loadingProgress.expectedTotalBytes ??
-                                              1)
-                                      : null,
-                                ),
-                              );
-                            }
-                          },
-                        )),
+                        child: pokemons[idx].sprite?.frontDefault == null
+                            ? Text("N/A", style: TextStyle(color: Colors.white),)
+                            : Image.network(
+                                "${pokemons[idx].sprite?.frontDefault}",
+                                loadingBuilder: (BuildContext context,
+                                    Widget child,
+                                    ImageChunkEvent? loadingProgress) {
+                                  if (loadingProgress == null) {
+                                    return child;
+                                  } else {
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        value: loadingProgress
+                                                    .expectedTotalBytes !=
+                                                null
+                                            ? loadingProgress
+                                                    .cumulativeBytesLoaded /
+                                                (loadingProgress
+                                                        .expectedTotalBytes ??
+                                                    1)
+                                            : null,
+                                      ),
+                                    );
+                                  }
+                                },
+                              )),
                     title: Text(
                       "${pokemons[idx]?.name}",
                     ),
