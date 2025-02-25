@@ -9,6 +9,7 @@ class Pokemon {
   String? name;
   int? order;
   bool? is_default;
+  String? url;
   String? location_area_encounters;
 
   List<Ability>? abilities = [];
@@ -20,6 +21,7 @@ class Pokemon {
       this.order,
       this.is_default,
       this.location_area_encounters,
+      this.url,
       this.abilities,
       this.sprite});
 
@@ -42,6 +44,7 @@ class Pokemon {
           order: body["order"],
           is_default: body["is_default"],
           location_area_encounters: body["location_area_encounters"],
+          url: body["url"],
           abilities: abilityList,
           sprite: Sprite(
             backDefault: body["sprites"]["back_default"],
@@ -63,6 +66,7 @@ class Pokemon {
       "id": id,
       "name": name,
       "order": order,
+      "url": url,
       "is_default": is_default,
       "location_area_encounters": location_area_encounters
     };

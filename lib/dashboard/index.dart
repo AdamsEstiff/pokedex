@@ -12,6 +12,7 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   TextEditingController controller = TextEditingController();
   List<Pokemon> pokemons = [];
+  Pokemon? pokemon;
   String validateMessage = "";
   bool loading = false;
   bool isError = false;
@@ -19,6 +20,7 @@ class _DashboardState extends State<Dashboard> {
 
   @override
   void initState() {
+    getPokemon();
     super.initState();
   }
 
@@ -28,36 +30,34 @@ class _DashboardState extends State<Dashboard> {
     super.dispose();
   }
 
-  Future<void> getPokemon(String name, StateSetter setState) async {
+  Future<void> getPokemon() async {
+    final response =
+        await Dio().get('https://pokeapi.co/api/v2/pokemon?limit=150');
+
+    for (var result in response.data["results"]) {
+      pokemons.add(Pokemon(name: result['name'], url: result["url"]));
+    }
+
+    setState(() {
+      pokemons;
+    });
+  }
+
+  Future<void> getPokemonInformation(String name, int index) async {
     try {
-      if (pokemons.any((pokemon) => pokemon.name == controller.text)) {
-        throw Exception("Este pokemon ya existe");
-      }
-      if (controller.text.isEmpty) {
-        setState(() {
-          validateMessage = "El nombre del Pokemon no puede ser vacío";
-          _validate = true;
-        });
-      } else {
+      if(pokemon !=null && pokemon?.name == name){
+        pokemon = null;
+      }else{
         setState(() {
           loading = true;
         });
-        Pokemon? pokemon = await Pokemon().getPokemon(name);
-        if (pokemon != null) {
-          setState(() {
-            pokemons.add(pokemon);
-            validateMessage = "";
-            _validate = false;
-          });
-          controller.clear();
-          Navigator.pop(context);
-        } else {
-          setState(() {
-            validateMessage = "No se encuentra el nombre del Pokemón escrito";
-            _validate = true;
-          });
+        Pokemon? pokemonData = await Pokemon().getPokemon(name);
+        if (pokemonData != null) {
+          pokemons[index] = pokemonData;
+          pokemon = pokemonData;
         }
       }
+
     } catch (e) {
       setState(() {
         validateMessage = "$e";
@@ -66,6 +66,8 @@ class _DashboardState extends State<Dashboard> {
     } finally {
       setState(() {
         loading = false;
+        pokemons;
+        pokemon;
       });
     }
   }
@@ -114,7 +116,7 @@ class _DashboardState extends State<Dashboard> {
                     style: TextStyle(color: Colors.green),
                   ),
                   onPressed: () async {
-                    await getPokemon(controller.text, setState);
+                    // await getPokemon(controller.text, setState);
                   },
                 )
               ],
@@ -196,86 +198,120 @@ class _DashboardState extends State<Dashboard> {
         backgroundColor: Color(0xFFFFCC00),
         foregroundColor: Color(0xFF3D7DCA),
       ),
-      body: AnimatedCrossFade(
-        crossFadeState: pokemons.isNotEmpty
-            ? CrossFadeState.showFirst
-            : CrossFadeState.showSecond,
-        duration: const Duration(milliseconds: 500),
-        firstChild: Container(
-          constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height,
-              maxWidth: MediaQuery.of(context).size.width),
-          child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: pokemons.length,
-              itemBuilder: (context, idx) {
-                return Container(
-                  margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
-                  padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
-                  decoration: BoxDecoration(
-                    color: Color(0xFFADD8E6),
-                    border: Border.all(
-                      color: Color(0xFFADD8E6),
+      body: Row(
+        children: [
+          if (pokemon != null)
+            Expanded(
+                child: Image.network(
+              "${pokemon!.sprite?.frontDefault}",
+              loadingBuilder: (BuildContext context, Widget child,
+                  ImageChunkEvent? loadingProgress) {
+                if (loadingProgress == null) {
+                  return child;
+                } else {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              (loadingProgress.expectedTotalBytes ?? 1)
+                          : null,
                     ),
-                    borderRadius: BorderRadius.circular(100),
+                  );
+                }
+              },
+            )),
+          Expanded(
+            child: AnimatedCrossFade(
+              crossFadeState: pokemons.isNotEmpty
+                  ? CrossFadeState.showFirst
+                  : CrossFadeState.showSecond,
+              duration: const Duration(milliseconds: 500),
+              firstChild: Container(
+                constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height,
+                    maxWidth: MediaQuery.of(context).size.width),
+                child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: pokemons.length,
+                    itemBuilder: (context, idx) {
+                      return Container(
+                        margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
+                        padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
+                        decoration: BoxDecoration(
+                          color: Color(0xFFADD8E6),
+                          border: Border.all(
+                            color: pokemon == pokemons[idx]
+                                ? Color(0xFF002E9D)
+                                : Color(0xFFADD8E6),
+                          ),
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        child: ListTile(
+                          // leading: CircleAvatar(
+                          //     backgroundColor: Color(0xFF3D7DCA),
+                          //     child: pokemons[idx].sprite?.frontDefault == null
+                          //         ? Text(
+                          //             "N/A",
+                          //             style: TextStyle(color: Colors.white),
+                          //           )
+                          //         : Image.network(
+                          //             "${pokemons[idx].sprite?.frontDefault}",
+                          //             loadingBuilder: (BuildContext context,
+                          //                 Widget child,
+                          //                 ImageChunkEvent? loadingProgress) {
+                          //               if (loadingProgress == null) {
+                          //                 return child;
+                          //               } else {
+                          //                 return Center(
+                          //                   child: CircularProgressIndicator(
+                          //                     value: loadingProgress
+                          //                                 .expectedTotalBytes !=
+                          //                             null
+                          //                         ? loadingProgress
+                          //                                 .cumulativeBytesLoaded /
+                          //                             (loadingProgress
+                          //                                     .expectedTotalBytes ??
+                          //                                 1)
+                          //                         : null,
+                          //                   ),
+                          //                 );
+                          //               }
+                          //             },
+                          //           )),
+                          title: Text(
+                            "${pokemons[idx]?.name}",
+                            textAlign: TextAlign.center,
+                          ),
+                          onTap: () async {
+                            // showModal(pokemons[idx]);
+                            await getPokemonInformation(
+                                pokemons[idx].name!, idx);
+                          },
+                        ),
+                      );
+                    }),
+              ),
+              secondChild: Container(
+                height: MediaQuery.of(context).size.height,
+                child: Center(
+                  child: Text(
+                    "No se han ingresado pokemons",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.black),
                   ),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                        backgroundColor: Color(0xFF3D7DCA),
-                        child: pokemons[idx].sprite?.frontDefault == null
-                            ? Text("N/A", style: TextStyle(color: Colors.white),)
-                            : Image.network(
-                                "${pokemons[idx].sprite?.frontDefault}",
-                                loadingBuilder: (BuildContext context,
-                                    Widget child,
-                                    ImageChunkEvent? loadingProgress) {
-                                  if (loadingProgress == null) {
-                                    return child;
-                                  } else {
-                                    return Center(
-                                      child: CircularProgressIndicator(
-                                        value: loadingProgress
-                                                    .expectedTotalBytes !=
-                                                null
-                                            ? loadingProgress
-                                                    .cumulativeBytesLoaded /
-                                                (loadingProgress
-                                                        .expectedTotalBytes ??
-                                                    1)
-                                            : null,
-                                      ),
-                                    );
-                                  }
-                                },
-                              )),
-                    title: Text(
-                      "${pokemons[idx]?.name}",
-                    ),
-                    onTap: () {
-                      showModal(pokemons[idx]);
-                    },
-                  ),
-                );
-              }),
-        ),
-        secondChild: Container(
-          height: MediaQuery.of(context).size.height,
-          child: Center(
-            child: Text(
-              "No se han ingresado pokemons",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.black),
+                ),
+              ),
             ),
           ),
-        ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showAddPokemon(context);
-        },
-        backgroundColor: Colors.yellow, // Fondo amarillo
-        child: const Icon(Icons.add, color: Colors.black), // Icono negro
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     showAddPokemon(context);
+      //   },
+      //   backgroundColor: Colors.yellow, // Fondo amarillo
+      //   child: const Icon(Icons.add, color: Colors.black), // Icono negro
+      // ),
     );
   }
 }
